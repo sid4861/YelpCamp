@@ -4,17 +4,31 @@ var app = express();
 var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
-var campgrounds = [{ name: "Salmon creek", image: "https://live.staticflickr.com/2476/3768082032_27611a1e91_m.jpg" },
-{ name: "Mountain view", image: "https://live.staticflickr.com/5305/5848903262_ae7201d4d7_m.jpg" },
- {name : "camp here", image: "https://cdn2.howtostartanllc.com/images/business-ideas/business-idea-images/Campground.webp"},
- { name: "Salmon creek", image: "https://live.staticflickr.com/2476/3768082032_27611a1e91_m.jpg" },
- { name: "Mountain view", image: "https://live.staticflickr.com/5305/5848903262_ae7201d4d7_m.jpg" },
-  {name : "camp here", image: "https://cdn2.howtostartanllc.com/images/business-ideas/business-idea-images/Campground.webp"},
-  { name: "Salmon creek", image: "https://live.staticflickr.com/2476/3768082032_27611a1e91_m.jpg" },
-  { name: "Mountain view", image: "https://live.staticflickr.com/5305/5848903262_ae7201d4d7_m.jpg" },
-   {name : "camp here", image: "https://cdn2.howtostartanllc.com/images/business-ideas/business-idea-images/Campground.webp"},
-   { name: "Salmon creek", image: "https://live.staticflickr.com/2476/3768082032_27611a1e91_m.jpg" },
-   { name: "Mountain view", image: "https://live.staticflickr.com/5305/5848903262_ae7201d4d7_m.jpg" }];
+var mongoose = require("mongoose");
+mongoose.connect("mongodb://localhost:27017/yelpcamp", {useNewUrlParser : true});
+
+var campgroundSchema = mongoose.Schema({
+    name: String,
+    image: String,
+    description : String
+});
+
+var campground = mongoose.model("campground", campgroundSchema);
+
+// campground.create({
+//     name : "camp ground5",
+//     image : "https://cdn2.howtostartanllc.com/images/business-ideas/business-idea-images/Campground.webp",
+//     description : "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsum modi odit alias, quasi facere quo expedita vel quod nobis, corporis exercitationem. Exercitationem est distinctio vitae dignissimos fuga adipisci earum molestiae."
+
+// }, function(err, campground){
+//     if(err){
+//         console.log(err);
+//     }
+//     else{
+//         console.log("created");
+//     }
+// });
+
 
 app.get("/", function (req, res) {
     console.log("this will be landing page");
@@ -25,7 +39,17 @@ app.get("/", function (req, res) {
 
 app.get("/campgrounds", function (req, res) {
 
-    res.render("campgrounds.ejs", { campgrounds: campgrounds });
+    // get all campgrounds from db
+
+    campground.find({}, function(err, campgrounds){
+        if(err){
+            console.log("error");
+        }
+        else{
+            res.render("campgrounds.ejs", { campgrounds: campgrounds });
+        }
+    });
+    
 });
 
 app.post("/campgrounds", function (req, res) {
@@ -33,8 +57,22 @@ app.post("/campgrounds", function (req, res) {
 
     var name = req.body.name;
     var url = req.body.url;
+    var description = req.body.description;
 
-    campgrounds.push({ name: name, image: url });
+    //create a new campground and save to db
+
+    campground.create({
+        name : name,
+        image : url,
+        description : description
+    }, function(err, campground){
+        if(err){
+            console.log(err);
+        }
+        else{
+            console.log("created");
+        }
+    });
 
     //redirect back to campgrounds page
 
@@ -44,6 +82,21 @@ app.post("/campgrounds", function (req, res) {
 app.get("/campgrounds/new", function (req, res) {
     res.render("new.ejs");
 });
+
+
+app.get("/campgrounds/:id", function(req, res){
+    //find the campground with provided id
+    campground.findById(req.params.id, function(err, campground){
+        if(err){
+            console.log(err);
+        }
+        else{
+            res.render("show.ejs", {campground : campground});
+        }
+    });
+});
+
+
 
 app.listen(3000, function () {
     console.log("app started");

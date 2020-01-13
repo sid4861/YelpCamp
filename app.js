@@ -3,7 +3,7 @@ var app = express();
 
 var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(express.static(__dirname+"/public"));
 var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/yelpcamp", {useNewUrlParser : true});
 

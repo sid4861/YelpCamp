@@ -53,7 +53,7 @@ app.get("/campgrounds", function (req, res) {
             console.log("error");
         }
         else {
-            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, currentUser : req.user });
+            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds });
         }
     });
 

@@ -13,6 +13,10 @@ var seedDB = require("./seeds");
 var passport = require("passport");
 var localStrategy = require("passport-local");
 var user = require("./models/user");
+app.use(function(req, res, next){
+    res.locals.currentUser = req.user;
+    next();
+});
 seedDB();
 
 
@@ -43,13 +47,13 @@ app.get("/", function (req, res) {
 app.get("/campgrounds", function (req, res) {
 
     // get all campgrounds from db
-
+    console.log(req.user);
     campground.find({}, function (err, campgrounds) {
         if (err) {
             console.log("error");
         }
         else {
-            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds });
+            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, currentUser : req.user });
         }
     });
 
@@ -103,7 +107,7 @@ app.get("/campgrounds/:id", function (req, res) {
 
 //new comment form, nested routes
 
-app.get("/campgrounds/:id/comments/new", function (req, res) {
+app.get("/campgrounds/:id/comments/new", isLoggedIn,function (req, res) {
 
     campground.findById(req.params.id, function (err, foundCampGround) {
         if (err) {
@@ -118,7 +122,7 @@ app.get("/campgrounds/:id/comments/new", function (req, res) {
 
 //posting new comment
 
-app.post("/campgrounds/:id/comments", function (req, res) {
+app.post("/campgrounds/:id/comments", isLoggedIn,function (req, res) {
     // lookup campground
     //create comment
     // add comment to campground
@@ -143,7 +147,7 @@ app.post("/campgrounds/:id/comments", function (req, res) {
 });
 
 
-// ########### Auth routes ###################
+// ########### Auth routes ############################################################################
 
 //show register form
 
@@ -166,6 +170,45 @@ app.post("/register", function(req, res){
         });
     });
 });
+
+//show login form
+
+app.get("/login" ,function(req, res){
+    res.render("login.ejs");
+});
+
+//perform login
+
+app.post("/login", passport.authenticate("local", {
+    successRedirect : "/campgrounds",
+    failureRedirect : "/login"
+}) ,function(req, res){
+
+});
+
+
+//logout route
+
+app.get("/logout", function(req, res){
+    req.logout();
+    res.redirect("/campgrounds");
+
+});
+
+
+//middleware to check whether user is logged in
+
+
+function isLoggedIn(req, res ,next) {
+    
+    if(req.isAuthenticated()){
+        return next();
+    }
+
+    res.redirect("/login");
+}
+
+//####################################################################################################
 
 // ############# app listen ####################
 app.listen(3000, function () {

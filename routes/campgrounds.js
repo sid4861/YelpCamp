@@ -18,15 +18,15 @@ router.get("/", function (req, res) {
 
 });
 
-router.post("/", isLoggedIn , function (req, res) {
+router.post("/", isLoggedIn, function (req, res) {
     //read data from form and store in campgrounds array
 
     var name = req.body.name;
     var url = req.body.url;
     var description = req.body.description;
     var author = {
-        id : req.user._id,
-        username : req.user.username
+        id: req.user._id,
+        username: req.user.username
     };
     //create a new campground and save to db
 
@@ -34,7 +34,7 @@ router.post("/", isLoggedIn , function (req, res) {
         name: name,
         image: url,
         description: description,
-        author : author
+        author: author
     }, function (err, campground) {
         if (err) {
             console.log(err);
@@ -49,7 +49,7 @@ router.post("/", isLoggedIn , function (req, res) {
     res.redirect("/campgrounds");
 });
 
-router.get("/new", isLoggedIn , function (req, res) {
+router.get("/new", isLoggedIn, function (req, res) {
     res.render("campground/new.ejs");
 });
 
@@ -69,9 +69,47 @@ router.get("/:id", function (req, res) {
 });
 
 
-function isLoggedIn(req, res ,next) {
-    
-    if(req.isAuthenticated()){
+//edit campground route (show form)
+router.get("/:id/edit", function (req, res) {
+    campground.findById(req.params.id, function (err, foundCampground) {
+        if (err) {
+            res.redirect("/campgrounds");
+        } else {
+            res.render("../views/campground/edit.ejs", { campground: foundCampground });
+        }
+    });
+
+});
+//update campground route
+router.put("/:id", function(req, res){
+    //find and update
+
+    campground.findByIdAndUpdate(req.params.id, req.body.campground,function(err, updatedCampground){
+        if(err){
+            res.redirect("/campgrounds");
+        } else{
+            res.redirect("/campgrounds/"+req.params.id);
+        }
+    });
+
+});
+
+//delete campground
+
+router.delete("/:id", function(req, res){
+    campground.findByIdAndRemove(req.params.id, function(err){
+        if(err){
+            res.redirect("/campgrounds");
+        } else{
+            res.redirect("/campgrounds");
+        }
+    });
+});
+
+//middle ware
+function isLoggedIn(req, res, next) {
+
+    if (req.isAuthenticated()) {
         return next();
     }
 

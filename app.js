@@ -1,9 +1,10 @@
 var express = require("express");
 var app = express();
-
+var methodOverride = require("method-override");
 var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
+app.use(methodOverride("_method"));
 var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/yelpcamp", { useNewUrlParser: true });
 

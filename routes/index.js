@@ -55,22 +55,11 @@ router.post("/login", passport.authenticate("local", {
 //logout route
 
 router.get("/logout", function(req, res){
+    req.flash("success", "Successsfully logged out");
     req.logout();
     res.redirect("/campgrounds");
 
 });
 
-
-//middleware to check whether user is logged in
-
-
-function isLoggedIn(req, res ,next) {
-    
-    if(req.isAuthenticated()){
-        return next();
-    }
-
-    res.redirect("/login");
-}
 
 module.exports = router;

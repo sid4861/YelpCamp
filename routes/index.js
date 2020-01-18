@@ -27,10 +27,11 @@ router.post("/register", function(req, res){
 
     user.register( newUser, req.body.password, function(err, signedUpUser){
         if(err){
-            console.log(err);
+            req.flash("error", err.message);
             return res.render("register.ejs");
         }
         passport.authenticate("local")(req, res, function(){
+            req.flash("success","Welcome to YelpCamp"+signedUpUser.username);
             res.redirect("/campgrounds");
         });
     });

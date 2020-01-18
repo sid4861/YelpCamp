@@ -40,11 +40,17 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <p>
-                        <em>Submitted by: <%= campground.author.username %>,
+                    <!-- <p>
+                       Submitted by:  <a href="/users/<%= campground.author.id %>"><%= campground.author.username %> </a>  <em>,
                             <%= moment(campground.createdAt).fromNow() %></em>
-                    </p>
+                    </p> -->
+
+                   
+                        submitted by : <a href="#"> <%= campground.author.username %> </a>
+                    
+
                     <span class="pull-right"><%= moment(comment.createdAt).fromNow() %></span>
+
                     <p>
                         <strong> </strong> - <%= comment.text %>
                     </p>

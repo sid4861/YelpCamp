@@ -23,8 +23,15 @@ router.get("/register", function (req, res) {
 // perform sign up
 
 router.post("/register", function (req, res) {
-    var newUser = new user({ username: req.body.username });
-    if(req.body.adminCode === "secretcode123"){
+    var newUser = new user({
+        username: req.body.username,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        avatar: req.body.avatar
+    });
+
+    if (req.body.adminCode === "secretcode123") {
         newUser.isAdmin = true;
     }
     user.register(newUser, req.body.password, function (err, signedUpUser) {
@@ -64,5 +71,18 @@ router.get("/logout", function (req, res) {
 
 });
 
+// user profiles
+
+router.get("/users/:id", function(req, res){
+    user.findById(req.params.id, function(err, foundUser){
+        if(err){
+            req.flash("error", "something went wrong");
+            res.redirect("/");
+
+        } else {
+            res.render("users/show.ejs", {user : foundUser});
+        }
+    });
+});
 
 module.exports = router;

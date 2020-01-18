@@ -8,7 +8,11 @@ app.use(methodOverride("_method"));
 var flash = require("connect-flash");
 app.use(flash());
 var mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/yelpcamp", { useNewUrlParser: true });
+// mongoose.connect("mongodb://localhost:27017/yelpcamp", { useNewUrlParser: true });
+
+mongoose.connect("mongodb+srv://yelpcampadmin:yelpcampadmin@yelpcamp-cluster-7ua5d.mongodb.net/test?retryWrites=true&w=majority");
+
+
 
 var campground = require("./models/campground");
 var comment = require("./models/comment");

@@ -20,7 +20,8 @@
                 <h4 class="pull-right"> <%= campground.price %>$/night </h4>
                 <h4> <a href=""><%=campground.name%></a> </h4>
                 <p> <%= campground.description %></p>
-                <p>Submitted by <strong> <%= campground.author.username %> </strong> </p>
+                <p>Submitted by <strong>  <a href="/users/<%=campground.author.id%>"> <%= campground.author.username %> </a>  </strong>  <em>,
+                    <%= moment(campground.createdAt).fromNow() %></em></p>
                 <% if(currentUser && campground.author.id.equals(currentUser._id)){  %>
                 <a class="btn btn-warning" href="/campgrounds/<%=campground._id%>/edit">Edit</a>
                 <form class="delete-form" action="/campgrounds/<%= campground._id %>?_method=DELETE" method="POST">
@@ -40,15 +41,12 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <!-- <p>
-                       Submitted by:  <a href="/users/<%= campground.author.id %>"><%= campground.author.username %> </a>  <em>,
-                            <%= moment(campground.createdAt).fromNow() %></em>
-                    </p> -->
-
                    
-                        submitted by : <a href="#"> <%= campground.author.username %> </a>
                     
-
+                       Submitted by:  <%= campground.author.username %>  <em>,
+                        <%= moment(campground.createdAt).fromNow() %></em>
+                    
+                   
                     <span class="pull-right"><%= moment(comment.createdAt).fromNow() %></span>
 
                     <p>

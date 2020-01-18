@@ -3,6 +3,7 @@ var router = express.Router();
 
 var passport = require("passport");
 var user = require("../models/user");
+var campground = require("../models/campground");
 
 router.get("/", function (req, res) {
     console.log("this will be landing page");
@@ -73,14 +74,23 @@ router.get("/logout", function (req, res) {
 
 // user profiles
 
-router.get("/users/:id", function(req, res){
-    user.findById(req.params.id, function(err, foundUser){
-        if(err){
+router.get("/users/:id", function (req, res) {
+    user.findById(req.params.id, function (err, foundUser) {
+        if (err) {
             req.flash("error", "something went wrong");
             res.redirect("/");
 
         } else {
-            res.render("users/show.ejs", {user : foundUser});
+            campground.find().where("author.id").equals(foundUser._id).exec(function (err, foundCampground) {
+                if (err) {
+                    req.flash("error", "something went wrong");
+                    res.redirect("/");
+
+                } else {
+                    res.render("users/show.ejs", { user: foundUser, campground: foundCampground });
+                }
+            });
+
         }
     });
 });

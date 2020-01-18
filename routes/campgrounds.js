@@ -13,7 +13,7 @@ router.get("/", function (req, res) {
             console.log("error");
         }
         else {
-            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds });
+            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds' });
         }
     });
 

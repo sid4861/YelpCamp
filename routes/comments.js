@@ -43,7 +43,7 @@ router.post("/", middleware.isLoggedIn,function (req, res) {
                     comment.save();
                     foundCampGround.comments.push(comment);
                     foundCampGround.save();
-                    req.flasj("error", "comment added successfully");
+                    req.flash("success", "comment added successfully");
                     res.redirect("/campgrounds" + "/" + foundCampGround._id);
                 }
             });

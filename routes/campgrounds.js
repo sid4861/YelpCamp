@@ -1,6 +1,6 @@
 var express = require("express");
 var router = express.Router();
-
+var Review = require("../models/reviews");
 var campground = require("../models/campground");
 var middleware = require("../middleware/index");
 var multer = require('multer');
@@ -111,7 +111,10 @@ router.get("/new", middleware.isLoggedIn, function (req, res) {
 
 router.get("/:id", function (req, res) {
     //find the campground with provided id
-    campground.findById(req.params.id).populate("comments likes").exec(function (err, campground) {
+    campground.findById(req.params.id).populate("comments likes").populate({
+        path: "reviews",
+        options: { sort: { createdAt: -1 } }
+    }).exec(function (err, campground) {
         if (err) {
             console.log(err);
         }
@@ -149,18 +152,35 @@ router.put("/:id", middleware.checkCampgroundOwnership, function (req, res) {
 //delete campground
 
 router.delete("/:id", middleware.checkCampgroundOwnership, function (req, res) {
-    campground.findByIdAndRemove(req.params.id, function (err) {
+    campground.findById(req.params.id, function (err, campground) {
         if (err) {
             res.redirect("/campgrounds");
         } else {
-            res.redirect("/campgrounds");
+            // deletes all comments associated with the campground
+            comment.remove({ "_id": { $in: campground.comments } }, function (err) {
+                if (err) {
+                    console.log(err);
+                    return res.redirect("/campgrounds");
+                }
+                // deletes all reviews associated with the campground
+                Review.remove({ "_id": { $in: campground.reviews } }, function (err) {
+                    if (err) {
+                        console.log(err);
+                        return res.redirect("/campgrounds");
+                    }
+                    //  delete the campground
+                    campground.remove();
+                    req.flash("success", "Campground deleted successfully!");
+                    res.redirect("/campgrounds");
+                });
+            });
         }
     });
 });
 
 // campground like route
 
-router.post("/:id/like", middleware.isLoggedIn,function (req, res) {
+router.post("/:id/like", middleware.isLoggedIn, function (req, res) {
     campground.findById(req.params.id, function (err, foundCampground) {
         if (err) {
             console.log(err);

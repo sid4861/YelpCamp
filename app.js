@@ -23,12 +23,14 @@ var seedDB = require("./seeds");
 var passport = require("passport");
 var localStrategy = require("passport-local");
 var user = require("./models/user");
+var review = require("./models/reviews");
 
 
 
 var campgroundRoutes = require("./routes/campgrounds");
 var commentRoutes = require("./routes/comments");
 var authRoutes = require("./routes/index");
+var reviewRoutes = require("./routes/reviews")
 
 
 //seedDB();
@@ -36,9 +38,9 @@ var authRoutes = require("./routes/index");
 
 //################# passport config #################
 app.use(require("express-session")({
-    secret : "Siddharth",
-    resave : false,
-    saveUninitialized : false
+    secret: "Siddharth",
+    resave: false,
+    saveUninitialized: false
 }));
 
 
@@ -48,7 +50,7 @@ passport.use(new localStrategy(user.authenticate()));
 passport.serializeUser(user.serializeUser());
 passport.deserializeUser(user.deserializeUser());
 
-app.use(function(req, res, next){
+app.use(function (req, res, next) {
     res.locals.currentUser = req.user;
     res.locals.error = req.flash("error");
     res.locals.success = req.flash("success");
@@ -58,6 +60,7 @@ app.use(function(req, res, next){
 app.use(authRoutes);
 app.use("/campgrounds", campgroundRoutes);
 app.use("/campgrounds/:id/comments", commentRoutes);
+app.use("/campgrounds/:id/reviews", reviewRoutes);
 
 
 ///###########################################################################/

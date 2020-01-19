@@ -5,17 +5,39 @@ var campground = require("../models/campground");
 var middleware = require("../middleware/index");
 
 router.get("/", function (req, res) {
+    var noMatch;
+    if (req.query.search) {
 
-    // get all campgrounds from db
-    console.log(req.user);
-    campground.find({}, function (err, campgrounds) {
+        const regex = new RegExp(escapeRegex(req.query.search), 'gi');
+    
+    campground.find({name:regex}, function (err, campgrounds) {
         if (err) {
             console.log("error");
         }
         else {
-            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds' });
+            
+            if(campgrounds.length<1){
+                 noMatch = "no campgrounds match that query";
+            }
+            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds', noMatch : noMatch });
         }
     });
+
+    } else {
+
+        // get all campgrounds from db
+        console.log(req.user);
+        campground.find({}, function (err, campgrounds) {
+            if (err) {
+                console.log("error");
+            }
+            else {
+                res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds', noMatch : noMatch });
+            }
+        });
+
+    }
+
 
 });
 
@@ -34,7 +56,7 @@ router.post("/", middleware.isLoggedIn, function (req, res) {
 
     campground.create({
         name: name,
-        price : price,
+        price: price,
         image: url,
         description: description,
         author: author
@@ -81,7 +103,7 @@ router.get("/:id/edit", middleware.checkCampgroundOwnership, function (req, res)
 
 
 //update campground route
-router.put("/:id", middleware.checkCampgroundOwnership ,function (req, res) {
+router.put("/:id", middleware.checkCampgroundOwnership, function (req, res) {
     //find and update
 
     campground.findByIdAndUpdate(req.params.id, req.body.campground, function (err, updatedCampground) {
@@ -96,7 +118,7 @@ router.put("/:id", middleware.checkCampgroundOwnership ,function (req, res) {
 
 //delete campground
 
-router.delete("/:id", middleware.checkCampgroundOwnership,function (req, res) {
+router.delete("/:id", middleware.checkCampgroundOwnership, function (req, res) {
     campground.findByIdAndRemove(req.params.id, function (err) {
         if (err) {
             res.redirect("/campgrounds");
@@ -106,6 +128,9 @@ router.delete("/:id", middleware.checkCampgroundOwnership,function (req, res) {
     });
 });
 
-
+// for fuzzy search
+function escapeRegex(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
 
 module.exports = router;

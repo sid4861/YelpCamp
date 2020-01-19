@@ -12,6 +12,12 @@ var campgroundSchema = mongoose.Schema({
             ref: "comment"
         }
     ],
+    likes:[
+        {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : "user"
+        }
+    ],
     author : {
         id : {
             type : mongoose.Schema.Types.ObjectId,

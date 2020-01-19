@@ -3,25 +3,47 @@ var router = express.Router();
 
 var campground = require("../models/campground");
 var middleware = require("../middleware/index");
+var multer = require('multer');
+var storage = multer.diskStorage({
+    filename: function (req, file, callback) {
+        callback(null, Date.now() + file.originalname);
+    }
+});
+var imageFilter = function (req, file, cb) {
+    // accept image files only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+        return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+};
+var upload = multer({ storage: storage, fileFilter: imageFilter })
+
+var cloudinary = require('cloudinary');
+cloudinary.config({
+    cloud_name: 'dxkeow8zu',
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 
 router.get("/", function (req, res) {
     var noMatch;
     if (req.query.search) {
 
         const regex = new RegExp(escapeRegex(req.query.search), 'gi');
-    
-    campground.find({name:regex}, function (err, campgrounds) {
-        if (err) {
-            console.log("error");
-        }
-        else {
-            
-            if(campgrounds.length<1){
-                 noMatch = "no campgrounds match that query";
+
+        campground.find({ name: regex }, function (err, campgrounds) {
+            if (err) {
+                console.log("error");
             }
-            res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds', noMatch : noMatch });
-        }
-    });
+            else {
+
+                if (campgrounds.length < 1) {
+                    noMatch = "no campgrounds match that query";
+                }
+                res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds', noMatch: noMatch });
+            }
+        });
 
     } else {
 
@@ -32,7 +54,7 @@ router.get("/", function (req, res) {
                 console.log("error");
             }
             else {
-                res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds', noMatch : noMatch });
+                res.render("campground/campgrounds.ejs", { campgrounds: campgrounds, page: 'campgrounds', noMatch: noMatch });
             }
         });
 
@@ -41,7 +63,7 @@ router.get("/", function (req, res) {
 
 });
 
-router.post("/", middleware.isLoggedIn, function (req, res) {
+router.post("/", middleware.isLoggedIn, upload.single('image'), function (req, res) {
     //read data from form and store in campgrounds array
 
     var name = req.body.name;
@@ -52,26 +74,34 @@ router.post("/", middleware.isLoggedIn, function (req, res) {
         id: req.user._id,
         username: req.user.username
     };
-    //create a new campground and save to db
 
-    campground.create({
-        name: name,
-        price: price,
-        image: url,
-        description: description,
-        author: author
-    }, function (err, campground) {
-        if (err) {
-            console.log(err);
-        }
-        else {
-            console.log("created");
-        }
+    //image upload code
+
+    cloudinary.uploader.upload(req.file.path, function (result) {
+        // add cloudinary url for the image to the campground object under image property
+        req.body.image = result.secure_url;
+
+        //create a new campground and save to db
+
+        campground.create({
+            name: name,
+            price: price,
+            image: req.body.image,
+            description: description,
+            author: author
+        }, function (err, campground) {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                console.log("created");
+            }
+        });
+
+        //redirect back to campgrounds page
+
+        res.redirect("/campgrounds");
     });
-
-    //redirect back to campgrounds page
-
-    res.redirect("/campgrounds");
 });
 
 router.get("/new", middleware.isLoggedIn, function (req, res) {
@@ -81,7 +111,7 @@ router.get("/new", middleware.isLoggedIn, function (req, res) {
 
 router.get("/:id", function (req, res) {
     //find the campground with provided id
-    campground.findById(req.params.id).populate("comments").exec(function (err, campground) {
+    campground.findById(req.params.id).populate("comments likes").exec(function (err, campground) {
         if (err) {
             console.log(err);
         }
@@ -126,6 +156,39 @@ router.delete("/:id", middleware.checkCampgroundOwnership, function (req, res) {
             res.redirect("/campgrounds");
         }
     });
+});
+
+// campground like route
+
+router.post("/:id/like", middleware.isLoggedIn,function (req, res) {
+    campground.findById(req.params.id, function (err, foundCampground) {
+        if (err) {
+            console.log(err);
+            return res.redirect("/campgrounds");
+        }
+
+        // check if req.user._id exists in foundCampground.likes
+
+        var foundUserLike = foundCampground.likes.some(function (like) {
+            return like.equals(req.user._id);
+        });
+
+        if (foundUserLike) {
+            // user already liked, removing like
+            foundCampground.likes.pull(req.user._id);
+        } else {
+            // adding the new user like
+            foundCampground.likes.push(req.user);
+        }
+
+        foundCampground.save(function (err) {
+            if (err) {
+                console.log(err);
+                return res.redirect("/campgrounds");
+            }
+            return res.redirect("/campgrounds/" + foundCampground._id);
+        })
+    })
 });
 
 // for fuzzy search

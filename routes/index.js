@@ -102,7 +102,7 @@ router.get("/users/:id", function (req, res) {
 
 // forgot password
 router.get('/forgot', function (req, res) {
-    res.render('forgot');
+    res.render('forgot.ejs');
 });
 
 router.post('/forgot', function (req, res, next) {
@@ -117,7 +117,7 @@ router.post('/forgot', function (req, res, next) {
             User.findOne({ email: req.body.email }, function (err, user) {
                 if (!user) {
                     req.flash('error', 'No account with that email address exists.');
-                    return res.redirect('/forgot');
+                    return res.redirect('/forgot.ejs');
                 }
 
                 user.resetPasswordToken = token;
@@ -153,7 +153,7 @@ router.post('/forgot', function (req, res, next) {
         }
     ], function (err) {
         if (err) return next(err);
-        res.redirect('/forgot');
+        res.redirect('/forgot.ejs');
     });
 });
 
@@ -161,9 +161,9 @@ router.get('/reset/:token', function (req, res) {
     User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function (err, user) {
         if (!user) {
             req.flash('error', 'Password reset token is invalid or has expired.');
-            return res.redirect('/forgot');
+            return res.redirect('/forgot.ejs');
         }
-        res.render('reset', { token: req.params.token });
+        res.render('reset.ejs', { token: req.params.token });
     });
 });
 
@@ -213,7 +213,7 @@ router.post('/reset/:token', function (req, res) {
             });
         }
     ], function (err) {
-        res.redirect('/campgrounds');
+        res.redirect('/campgrounds.ejs');
     });
 });
 
@@ -229,7 +229,7 @@ router.get("/users/:id", function (req, res) {
                 req.flash("error", "Something went wrong.");
                 res.redirect("/");
             }
-            res.render("users/show", { user: foundUser, campgrounds: campgrounds });
+            res.render("users/show.ejs", { user: foundUser, campgrounds: campgrounds });
         })
     });
 });

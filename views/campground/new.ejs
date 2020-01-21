@@ -1,12 +1,12 @@
 <%- include("../partials/header.ejs") %>
 
-<div class="container">
+
     <div class="row">
 
         <h1 style="text-align: center;">Create a new Campground</h1>
 
         <div style="width: 30%; margin: 20px auto;">
-            <form action="/campgrounds" method="POST">
+            <form action="/campgrounds" method="POST" enctype="multipart/form-data">
 
                 <div class="form-group">
                     <input class="form-control" type="text" placeholder="name" , name="name">
@@ -17,7 +17,8 @@
                 </div>
 
                 <div class="form-group">
-                    <input class="form-control" type="text" placeholder="image url" name="url">
+                    <label for="image">Image</label>
+                    <input type="file" id="image" name="image" accept="image/*" required>
                 </div>
                 
                 <div class="form-group">
@@ -41,6 +42,6 @@
     </div>
 
 
-</div>
+
 
 <%- include("../partials/footer.ejs") %>
